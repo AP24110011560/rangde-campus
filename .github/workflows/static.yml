@@ -1,0 +1,197 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+
+export default function RangDeWebsite() {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", location: "" });
+  const [orders, setOrders] = useState([]);
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+
+  // ✅ Admin Password
+  const OWNER_PASSWORD = "1234";
+
+  // ✅ WhatsApp Number (Change to 919121141651 if needed)
+  const ownerWhatsAppNumber = "9121141651";
+
+  // Load saved orders
+  useEffect(() => {
+    const savedOrders = localStorage.getItem("rangde_orders");
+    if (savedOrders) {
+      setOrders(JSON.parse(savedOrders));
+    }
+  }, []);
+
+  // Save orders
+  useEffect(() => {
+    localStorage.setItem("rangde_orders", JSON.stringify(orders));
+  }, [orders]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!form.name || !form.phone || !form.location) {
+      alert("Please fill all details");
+      return;
+    }
+
+    const newOrder = {
+      id: Date.now(),
+      ...form,
+      status: "Pending",
+    };
+
+    setOrders([newOrder, ...orders]);
+
+    const message = `New Order - RangDe Campus Colors
+
+Name: ${form.name}
+Mobile: ${form.phone}
+Campus Location: ${form.location}
+
+Payment: Cash on Delivery`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${ownerWhatsAppNumber}?text=${encodedMessage}`;
+
+    window.open(whatsappURL, "_blank");
+
+    setForm({ name: "", phone: "", location: "" });
+    setShowForm(false);
+  };
+
+  const markDelivered = (id) => {
+    const updated = orders.map((order) =>
+      order.id === id ? { ...order, status: "Delivered" } : order
+    );
+    setOrders(updated);
+  };
+
+  const handleAdminLogin = () => {
+    if (adminPassword === OWNER_PASSWORD) {
+      setAdminMode(true);
+    } else {
+      alert("Wrong Password");
+    }
+  };
+
+  // ================= ADMIN PAGE =================
+  if (adminMode) {
+    return (
+      <div className="min-h-screen p-6 bg-gray-100">
+        <h1 className="text-3xl font-bold text-center mb-6">
+          RangDe Admin Dashboard
+        </h1>
+
+        {orders.length === 0 ? (
+          <p className="text-center">No orders yet.</p>
+        ) : (
+          <div className="space-y-4 max-w-xl mx-auto">
+            {orders.map((order) => (
+              <div key={order.id} className="bg-white p-4 rounded-xl shadow">
+                <p><strong>Name:</strong> {order.name}</p>
+                <p><strong>Mobile:</strong> {order.phone}</p>
+                <p><strong>Location:</strong> {order.location}</p>
+                <p><strong>Status:</strong> {order.status}</p>
+
+                {order.status === "Pending" && (
+                  <button
+                    onClick={() => markDelivered(order.id)}
+                    className="mt-3 bg-green-500 text-white px-4 py-2 rounded"
+                  >
+                    Mark as Delivered
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => setAdminMode(false)}
+          className="mt-6 bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }
+
+  // ================= CUSTOMER PAGE =================
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 to-yellow-100 p-6 text-center">
+      <h1 className="text-3xl md:text-4xl font-bold text-pink-600">
+        RangDe Campus Colors
+      </h1>
+
+      <p className="mt-3 text-lg font-medium text-gray-700">
+        100% Organic | Safe | Campus Delivery
+      </p>
+
+      {!showForm && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="mt-8 bg-pink-600 text-white px-8 py-4 text-lg rounded-xl"
+        >
+          Order Now
+        </button>
+      )}
+
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="mt-8 w-full max-w-md bg-white p-6 rounded-2xl shadow-lg space-y-4"
+        >
+          <input
+            type="text"
+            placeholder="Full Name"
+            className="w-full p-3 border rounded-xl"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+
+          <input
+            type="tel"
+            placeholder="Mobile Number"
+            className="w-full p-3 border rounded-xl"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+
+          <input
+            type="text"
+            placeholder="Waiting Location in Campus"
+            className="w-full p-3 border rounded-xl"
+            value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-green-500 text-white py-3 rounded-xl"
+          >
+            Confirm Order (Cash on Delivery)
+          </button>
+        </form>
+      )}
+
+      {/* Hidden Admin Login */}
+      <div className="mt-10">
+        <input
+          type="password"
+          placeholder="Admin Password"
+          className="p-2 border rounded-lg"
+          value={adminPassword}
+          onChange={(e) => setAdminPassword(e.target.value)}
+        />
+        <button
+          onClick={handleAdminLogin}
+          className="ml-2 bg-black text-white px-4 py-2 rounded"
+        >
+          Admin Login
+        </button>
+      </div>
+    </div>
+  );
+}
