@@ -1,0 +1,80 @@
+import React, { useState } from "react"; import { Button } from "@/components/ui/button";
+
+export default function RangDeSimplePage() { const [showForm, setShowForm] = useState(false); const [form, setForm] = useState({ name: "", phone: "", location: "" });
+
+// 🔴 IMPORTANT: Replace with your WhatsApp number (with country code, no + sign) const ownerWhatsAppNumber = "91XXXXXXXXXX";
+
+const handleSubmit = (e) => { e.preventDefault();
+
+if (!form.name || !form.phone || !form.location) {
+  alert("Please fill all details");
+  return;
+}
+
+const message = `New Order - RangDe Campus Colors\n\nName: ${form.name}\nMobile: ${form.phone}\nCampus Location: ${form.location}\n\nPayment: Cash on Delivery`;
+
+const encodedMessage = encodeURIComponent(message);
+
+const whatsappURL = `https://wa.me/${ownerWhatsAppNumber}?text=${encodedMessage}`;
+
+window.open(whatsappURL, "_blank");
+
+setForm({ name: "", phone: "", location: "" });
+setShowForm(false);
+
+};
+
+return ( <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 to-yellow-100 p-6 text-center"> {/* Brand Section */} <h1 className="text-3xl md:text-4xl font-bold text-pink-600"> RangDe Campus Colors </h1>
+
+<p className="mt-3 text-lg font-medium text-gray-700">
+    100% Organic | Safe | Campus Delivery
+  </p>
+
+  {/* Order Button */}
+  {!showForm && (
+    <Button
+      onClick={() => setShowForm(true)}
+      className="mt-8 px-8 py-4 text-lg"
+    >
+      Order Now
+    </Button>
+  )}
+
+  {/* Order Form */}
+  {showForm && (
+    <form
+      onSubmit={handleSubmit}
+      className="mt-8 w-full max-w-md bg-white p-6 rounded-2xl shadow-lg space-y-4"
+    >
+      <input
+        type="text"
+        placeholder="Full Name"
+        className="w-full p-3 border rounded-xl"
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+      />
+
+      <input
+        type="tel"
+        placeholder="Mobile Number"
+        className="w-full p-3 border rounded-xl"
+        value={form.phone}
+        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+      />
+
+      <input
+        type="text"
+        placeholder="Waiting Location in Campus (Library, Canteen...)"
+        className="w-full p-3 border rounded-xl"
+        value={form.location}
+        onChange={(e) => setForm({ ...form, location: e.target.value })}
+      />
+
+      <Button type="submit" className="w-full">
+        Confirm Order (Cash on Delivery)
+      </Button>
+    </form>
+  )}
+</div>
+
+); }
